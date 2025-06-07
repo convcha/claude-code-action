@@ -62,7 +62,7 @@ describe("checkWritePermissions", () => {
     inputs: {
       triggerPhrase: "@claude",
       assigneeTrigger: "",
-      labelTrigger: "",
+      labelTriggers: [],
       allowedTools: [],
       disallowedTools: [],
       customInstructions: "",

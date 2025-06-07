@@ -28,7 +28,7 @@ export type ParsedGitHubContext = {
   inputs: {
     triggerPhrase: string;
     assigneeTrigger: string;
-    labelTrigger: string;
+    labelTriggers: string[];
     allowedTools: string[];
     disallowedTools: string[];
     customInstructions: string;
@@ -53,7 +53,24 @@ export function parseGitHubContext(): ParsedGitHubContext {
     inputs: {
       triggerPhrase: process.env.TRIGGER_PHRASE ?? "@claude",
       assigneeTrigger: process.env.ASSIGNEE_TRIGGER ?? "",
-      labelTrigger: process.env.LABEL_TRIGGER ?? "",
+      labelTriggers: (() => {
+        const labelTriggerInput = process.env.LABEL_TRIGGER ?? "";
+        if (!labelTriggerInput) return [];
+        
+        // If input contains newlines, treat as multi-line array
+        if (labelTriggerInput.includes('\n')) {
+          return labelTriggerInput
+            .split('\n')
+            .map((label) => label.trim())
+            .filter((label) => label.length > 0);
+        }
+        
+        // Otherwise treat as comma-separated string
+        return labelTriggerInput
+          .split(",")
+          .map((label) => label.trim())
+          .filter((label) => label.length > 0);
+      })(),
       allowedTools: (process.env.ALLOWED_TOOLS ?? "")
         .split(",")
         .map((tool) => tool.trim())

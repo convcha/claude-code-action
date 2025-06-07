@@ -262,3 +262,119 @@ describe("parseEnvVarsWithContext", () => {
     );
   });
 });
+
+describe("labelTriggers parsing", () => {
+  const createMockParsedContext = (
+    labelTriggerInput: string,
+  ): ParsedGitHubContext => ({
+    runId: "1234567890",
+    eventName: "issues",
+    eventAction: "labeled",
+    repository: {
+      owner: "owner",
+      repo: "repo",
+      full_name: "owner/repo",
+    },
+    actor: "test-user",
+    payload: {
+      action: "labeled",
+      issue: {
+        number: 1,
+        title: "Test Issue",
+        body: "Test body",
+        created_at: "2023-01-01T00:00:00Z",
+        user: { login: "testuser" },
+      },
+      label: {
+        name: "claude-auto-fix",
+        color: "ff0000",
+      },
+    } as IssuesEvent,
+    entityNumber: 1,
+    isPR: false,
+    inputs: {
+      triggerPhrase: "@claude",
+      assigneeTrigger: "",
+      labelTriggers: (() => {
+        if (!labelTriggerInput) return [];
+        if (labelTriggerInput.includes('\n')) {
+          return labelTriggerInput
+            .split('\n')
+            .map((label) => label.trim())
+            .filter((label) => label.length > 0);
+        }
+        return labelTriggerInput
+          .split(",")
+          .map((label) => label.trim())
+          .filter((label) => label.length > 0);
+      })(),
+      allowedTools: [],
+      disallowedTools: [],
+      customInstructions: "",
+      directPrompt: "",
+    },
+  });
+
+  test("should parse comma-separated label triggers correctly", () => {
+    const context = createMockParsedContext("claude-auto-fix,bug,enhancement");
+    expect(context.inputs.labelTriggers).toEqual([
+      "claude-auto-fix",
+      "bug",
+      "enhancement",
+    ]);
+  });
+
+  test("should parse multi-line label triggers correctly", () => {
+    const context = createMockParsedContext(
+      "claude-auto-fix\nbug\nenhancement",
+    );
+    expect(context.inputs.labelTriggers).toEqual([
+      "claude-auto-fix",
+      "bug",
+      "enhancement",
+    ]);
+  });
+
+  test("should handle empty lines in multi-line input", () => {
+    const context = createMockParsedContext(
+      "claude-auto-fix\n\nbug\n\nenhancement\n",
+    );
+    expect(context.inputs.labelTriggers).toEqual([
+      "claude-auto-fix",
+      "bug",
+      "enhancement",
+    ]);
+  });
+
+  test("should trim whitespace from labels", () => {
+    const context = createMockParsedContext(
+      "  claude-auto-fix  ,  bug  ,  enhancement  ",
+    );
+    expect(context.inputs.labelTriggers).toEqual([
+      "claude-auto-fix",
+      "bug",
+      "enhancement",
+    ]);
+  });
+
+  test("should handle single label", () => {
+    const context = createMockParsedContext("claude-auto-fix");
+    expect(context.inputs.labelTriggers).toEqual(["claude-auto-fix"]);
+  });
+
+  test("should handle empty input", () => {
+    const context = createMockParsedContext("");
+    expect(context.inputs.labelTriggers).toEqual([]);
+  });
+
+  test("should handle multi-line input with different spacing", () => {
+    const context = createMockParsedContext(
+      "claude-auto-fix\n    bug    \n\tenhancement\t",
+    );
+    expect(context.inputs.labelTriggers).toEqual([
+      "claude-auto-fix",
+      "bug",
+      "enhancement",
+    ]);
+  });
+});

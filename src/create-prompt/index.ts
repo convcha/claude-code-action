@@ -265,8 +265,8 @@ export function prepareContext(
           claudeBranch,
         };
       } else if (eventAction === "labeled") {
-        const labelTrigger = context.inputs.labelTrigger;
-        if (!labelTrigger) {
+        const labelTriggers = context.inputs.labelTriggers;
+        if (!labelTriggers || labelTriggers.length === 0) {
           throw new Error(
             "LABEL_TRIGGER is required for issue labeled event",
           );
@@ -278,7 +278,7 @@ export function prepareContext(
           issueNumber,
           baseBranch,
           claudeBranch,
-          labelTrigger,
+          labelTriggers,
         };
       } else {
         throw new Error(`Unsupported issue action: ${eventAction}`);
@@ -352,7 +352,7 @@ export function getEventTypeAndContext(envVars: PreparedContext): {
         case "labeled":
           return {
             eventType: "ISSUE_LABELED",
-            triggerContext: `issue labeled with '${eventData.labelTrigger}'`,
+            triggerContext: `issue labeled with one of: [${eventData.labelTriggers.join(", ")}]`,
           };
         default:
           throw new Error(`Unsupported issue action: ${(eventData as any).eventAction}`);

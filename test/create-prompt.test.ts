@@ -238,7 +238,7 @@ describe("generatePrompt", () => {
         issueNumber: "888",
         baseBranch: "main",
         claudeBranch: "claude/issue-888-20240101_120000",
-        labelTrigger: "claude-auto-fix",
+        labelTriggers: ["claude-auto-fix"],
       },
     };
 
@@ -246,7 +246,7 @@ describe("generatePrompt", () => {
 
     expect(prompt).toContain("<event_type>ISSUE_LABELED</event_type>");
     expect(prompt).toContain(
-      "<trigger_context>issue labeled with 'claude-auto-fix'</trigger_context>",
+      "<trigger_context>issue labeled with one of: [claude-auto-fix]</trigger_context>",
     );
     expect(prompt).toContain(
       "[Create a PR](https://github.com/owner/repo/compare/main",

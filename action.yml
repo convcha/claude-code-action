@@ -12,8 +12,15 @@ inputs:
   assignee_trigger:
     description: "The assignee username that triggers the action (e.g. @claude)"
     required: false
-  label_trigger:
-    description: "The label name that triggers the action when added to an issue"
+  label_triggers:
+    description: |
+      Label names that trigger the action when added to an issue.
+      Can be specified as:
+      1. Comma-separated string: 'claude-auto-fix,bug,enhancement'
+      2. Multi-line array:
+         claude-auto-fix
+         bug
+         enhancement
     required: false
   base_branch:
     description: "The branch to use as the base/source when creating new branches (defaults to repository default branch)"
@@ -97,7 +104,7 @@ runs:
       env:
         TRIGGER_PHRASE: ${{ inputs.trigger_phrase }}
         ASSIGNEE_TRIGGER: ${{ inputs.assignee_trigger }}
-        LABEL_TRIGGER: ${{ inputs.label_trigger }}
+        LABEL_TRIGGER: ${{ inputs.label_triggers }}
         BASE_BRANCH: ${{ inputs.base_branch }}
         ALLOWED_TOOLS: ${{ inputs.allowed_tools }}
         CUSTOM_INSTRUCTIONS: ${{ inputs.custom_instructions }}

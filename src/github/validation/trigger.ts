@@ -12,7 +12,7 @@ import type { ParsedGitHubContext } from "../context";
 
 export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
   const {
-    inputs: { assigneeTrigger, triggerPhrase, labelTrigger, directPrompt },
+    inputs: { assigneeTrigger, triggerPhrase, labelTriggers, directPrompt },
   } = context;
 
   // If direct prompt is provided, always trigger
@@ -38,9 +38,11 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
     const payload = context.payload as any;
     const labelName = payload.label?.name || "";
 
-    if (labelTrigger && labelName === labelTrigger) {
-      console.log(`Issue labeled with trigger label '${labelTrigger}'`);
-      return true;
+    if (labelTriggers.length > 0 && labelName) {
+      if (labelTriggers.includes(labelName)) {
+        console.log(`Issue labeled with trigger label '${labelName}' (from trigger list: [${labelTriggers.join(", ")}])`);
+        return true;
+      }
     }
   }
 
