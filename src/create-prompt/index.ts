@@ -297,6 +297,84 @@ export function prepareContext(
       };
       break;
 
+    case "workflow_dispatch":
+      // For workflow_dispatch, we may have PR number or issue number
+      if (isPR && prNumber) {
+        eventData = {
+          eventName: "workflow_dispatch",
+          isPR: true,
+          prNumber,
+          ...(claudeBranch && { claudeBranch }),
+          ...(baseBranch && { baseBranch }),
+        };
+      } else if (!isPR && issueNumber) {
+        if (!claudeBranch) {
+          throw new Error(
+            "CLAUDE_BRANCH is required for workflow_dispatch issue event",
+          );
+        }
+        if (!baseBranch) {
+          throw new Error(
+            "BASE_BRANCH is required for workflow_dispatch issue event",
+          );
+        }
+        eventData = {
+          eventName: "workflow_dispatch",
+          isPR: false,
+          issueNumber,
+          claudeBranch,
+          baseBranch,
+        };
+      } else {
+        // Direct prompt without specific PR/issue
+        eventData = {
+          eventName: "workflow_dispatch",
+          isPR: false,
+          ...(claudeBranch && { claudeBranch }),
+          ...(baseBranch && { baseBranch }),
+        };
+      }
+      break;
+
+    case "repository_dispatch":
+      // For repository_dispatch, we may have PR number or issue number
+      if (isPR && prNumber) {
+        eventData = {
+          eventName: "repository_dispatch",
+          isPR: true,
+          prNumber,
+          ...(claudeBranch && { claudeBranch }),
+          ...(baseBranch && { baseBranch }),
+        };
+      } else if (!isPR && issueNumber) {
+        if (!claudeBranch) {
+          throw new Error(
+            "CLAUDE_BRANCH is required for repository_dispatch issue event",
+          );
+        }
+        if (!baseBranch) {
+          throw new Error(
+            "BASE_BRANCH is required for repository_dispatch issue event",
+          );
+        }
+        eventData = {
+          eventName: "repository_dispatch",
+          isPR: false,
+          issueNumber,
+          claudeBranch,
+          baseBranch,
+        };
+      } else {
+        // Direct prompt without specific PR/issue
+        eventData = {
+          eventName: "repository_dispatch",
+          isPR: false,
+          ...(claudeBranch && { claudeBranch }),
+          ...(baseBranch && { baseBranch }),
+        };
+      }
+      break;
+
     default:
       throw new Error(`[index.ts] Unsupported event type: ${eventName}`);
   }
@@ -364,6 +442,26 @@ export function getEventTypeAndContext(envVars: PreparedContext): {
         triggerContext: eventData.eventAction
           ? `pull request ${eventData.eventAction}`
           : `pull request event`,
+      };
+
+    case "workflow_dispatch":
+      return {
+        eventType: "WORKFLOW_DISPATCH",
+        triggerContext: eventData.isPR
+          ? `workflow dispatch for PR #${eventData.prNumber}`
+          : eventData.issueNumber
+            ? `workflow dispatch for issue #${eventData.issueNumber}`
+            : "workflow dispatch with direct prompt",
+      };
+
+    case "repository_dispatch":
+      return {
+        eventType: "REPOSITORY_DISPATCH",
+        triggerContext: eventData.isPR
+          ? `repository dispatch for PR #${eventData.prNumber}`
+          : eventData.issueNumber
+            ? `repository dispatch for issue #${eventData.issueNumber}`
+            : "repository dispatch with direct prompt",
       };
 
     default:

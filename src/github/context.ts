@@ -149,6 +149,13 @@ export function parseGitHubContext(): ParsedGitHubContext {
           ? Number.parseInt(entityNumber.toString(), 10)
           : 0,
         isPR: isPR,
+        inputs: {
+          ...commonFields.inputs,
+          // Override directPrompt with client_payload.prompt if provided
+          directPrompt:
+            (payload.client_payload?.prompt as string) ??
+            commonFields.inputs.directPrompt,
+        },
       };
     }
     case "workflow_dispatch": {
