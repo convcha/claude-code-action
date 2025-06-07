@@ -298,7 +298,7 @@ export function prepareContext(
       break;
 
     default:
-      throw new Error(`Unsupported event type: ${eventName}`);
+      throw new Error(`[index.ts] Unsupported event type: ${eventName}`);
   }
 
   return {

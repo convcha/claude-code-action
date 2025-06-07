@@ -145,7 +145,9 @@ export function parseGitHubContext(): ParsedGitHubContext {
       return {
         ...commonFields,
         payload: payload,
-        entityNumber: entityNumber ? Number.parseInt(entityNumber.toString(), 10) : 0,
+        entityNumber: entityNumber
+          ? Number.parseInt(entityNumber.toString(), 10)
+          : 0,
         isPR: isPR,
       };
     }
@@ -163,7 +165,9 @@ export function parseGitHubContext(): ParsedGitHubContext {
       };
     }
     default:
-      throw new Error(`Unsupported event type: ${context.eventName}`);
+      throw new Error(
+        `[context.ts] Unsupported event type: ${context.eventName}`,
+      );
   }
 }
 
