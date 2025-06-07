@@ -55,11 +55,17 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
 
   // Handle repository_dispatch events
   if (isRepositoryDispatchEvent(context)) {
-    // Check for PR number in client_payload
+    // Check for PR number or issue number in client_payload
     const prNumber = context.payload.client_payload?.pr_number;
+    const issueNumber = context.payload.client_payload?.issue_number;
 
     if (prNumber) {
       console.log(`Repository dispatch triggered for PR #${prNumber}`);
+      return true;
+    }
+
+    if (issueNumber) {
+      console.log(`Repository dispatch triggered for issue #${issueNumber}`);
       return true;
     }
 
@@ -72,7 +78,7 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
     }
 
     console.log(
-      `Repository dispatch triggered but no PR number or prompt provided`,
+      `Repository dispatch triggered but no PR number, issue number or prompt provided`,
     );
     return false;
   }

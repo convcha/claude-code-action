@@ -136,14 +136,16 @@ export function parseGitHubContext(): ParsedGitHubContext {
     }
     case "repository_dispatch": {
       const payload = context.payload as RepositoryDispatchEvent;
-      // For repository_dispatch, check for PR number in client_payload
+      // For repository_dispatch, check for PR number or issue number in client_payload
       const prNumber = payload.client_payload?.pr_number;
+      const issueNumber = payload.client_payload?.issue_number;
+      const entityNumber = prNumber || issueNumber;
       const isPR = payload.client_payload?.is_pr === true || Boolean(prNumber);
 
       return {
         ...commonFields,
         payload: payload,
-        entityNumber: prNumber ? parseInt(prNumber.toString(), 10) : 0,
+        entityNumber: entityNumber ? Number.parseInt(entityNumber.toString(), 10) : 0,
         isPR: isPR,
       };
     }
@@ -156,7 +158,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
       return {
         ...commonFields,
         payload: payload,
-        entityNumber: prNumber ? parseInt(prNumber.toString(), 10) : 0,
+        entityNumber: prNumber ? Number.parseInt(prNumber.toString(), 10) : 0,
         isPR: isPR,
       };
     }
