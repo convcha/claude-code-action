@@ -266,11 +266,6 @@ export function prepareContext(
         };
       } else if (eventAction === "labeled") {
         const labelTriggers = context.inputs.labelTriggers;
-        if (!labelTriggers || labelTriggers.length === 0) {
-          throw new Error(
-            "LABEL_TRIGGER is required for issue labeled event",
-          );
-        }
         eventData = {
           eventName: "issues",
           eventAction: "labeled",
@@ -278,7 +273,7 @@ export function prepareContext(
           issueNumber,
           baseBranch,
           claudeBranch,
-          labelTriggers,
+          labelTriggers: labelTriggers || [],
         };
       } else {
         throw new Error(`Unsupported issue action: ${eventAction}`);
@@ -352,10 +347,15 @@ export function getEventTypeAndContext(envVars: PreparedContext): {
         case "labeled":
           return {
             eventType: "ISSUE_LABELED",
-            triggerContext: `issue labeled with one of: [${eventData.labelTriggers.join(", ")}]`,
+            triggerContext:
+              eventData.labelTriggers.length > 0
+                ? `issue labeled with one of: [${eventData.labelTriggers.join(", ")}]`
+                : "issue labeled (no specific labels configured)",
           };
         default:
-          throw new Error(`Unsupported issue action: ${(eventData as any).eventAction}`);
+          throw new Error(
+            `Unsupported issue action: ${(eventData as any).eventAction}`,
+          );
       }
 
     case "pull_request":

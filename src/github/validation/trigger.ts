@@ -96,7 +96,9 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
 
     if (labelTriggers.length > 0 && labelName) {
       if (labelTriggers.includes(labelName)) {
-        console.log(`Issue labeled with trigger label '${labelName}' (from trigger list: [${labelTriggers.join(", ")}])`);
+        console.log(
+          `Issue labeled with trigger label '${labelName}' (from trigger list: [${labelTriggers.join(", ")}])`,
+        );
         return true;
       }
     }

@@ -60,15 +60,15 @@ export function parseGitHubContext(): ParsedGitHubContext {
       labelTriggers: (() => {
         const labelTriggerInput = process.env.LABEL_TRIGGER ?? "";
         if (!labelTriggerInput) return [];
-        
+
         // If input contains newlines, treat as multi-line array
-        if (labelTriggerInput.includes('\n')) {
+        if (labelTriggerInput.includes("\n")) {
           return labelTriggerInput
-            .split('\n')
+            .split("\n")
             .map((label) => label.trim())
             .filter((label) => label.length > 0);
         }
-        
+
         // Otherwise treat as comma-separated string
         return labelTriggerInput
           .split(",")
@@ -139,7 +139,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
       // For repository_dispatch, check for PR number in client_payload
       const prNumber = payload.client_payload?.pr_number;
       const isPR = payload.client_payload?.is_pr === true || Boolean(prNumber);
-      
+
       return {
         ...commonFields,
         payload: payload,
@@ -152,7 +152,7 @@ export function parseGitHubContext(): ParsedGitHubContext {
       // For workflow_dispatch, check for PR number in inputs
       const prNumber = payload.inputs?.pr_number;
       const isPR = payload.inputs?.is_pr === "true" || Boolean(prNumber);
-      
+
       return {
         ...commonFields,
         payload: payload,

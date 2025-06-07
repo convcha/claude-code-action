@@ -297,9 +297,9 @@ describe("labelTriggers parsing", () => {
       assigneeTrigger: "",
       labelTriggers: (() => {
         if (!labelTriggerInput) return [];
-        if (labelTriggerInput.includes('\n')) {
+        if (labelTriggerInput.includes("\n")) {
           return labelTriggerInput
-            .split('\n')
+            .split("\n")
             .map((label) => label.trim())
             .filter((label) => label.length > 0);
         }

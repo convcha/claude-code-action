@@ -251,7 +251,39 @@ describe("generatePrompt", () => {
     expect(prompt).toContain(
       "[Create a PR](https://github.com/owner/repo/compare/main",
     );
-    expect(prompt).toContain("For ISSUE_LABELED: Read the entire issue body to understand the task (triggered by label)");
+    expect(prompt).toContain(
+      "For ISSUE_LABELED: Read the entire issue body to understand the task (triggered by label)",
+    );
+  });
+
+  test("should generate prompt for issue labeled event with empty label triggers", () => {
+    const envVars: PreparedContext = {
+      repository: "owner/repo",
+      claudeCommentId: "12345",
+      triggerPhrase: "@claude",
+      eventData: {
+        eventName: "issues",
+        eventAction: "labeled",
+        isPR: false,
+        issueNumber: "777",
+        baseBranch: "main",
+        claudeBranch: "claude/issue-777-20240101_120000",
+        labelTriggers: [],
+      },
+    };
+
+    const prompt = generatePrompt(envVars, mockGitHubData);
+
+    expect(prompt).toContain("<event_type>ISSUE_LABELED</event_type>");
+    expect(prompt).toContain(
+      "<trigger_context>issue labeled (no specific labels configured)</trigger_context>",
+    );
+    expect(prompt).toContain(
+      "[Create a PR](https://github.com/owner/repo/compare/main",
+    );
+    expect(prompt).toContain(
+      "For ISSUE_LABELED: Read the entire issue body to understand the task (triggered by label)",
+    );
   });
 
   test("should include direct prompt when provided", () => {
