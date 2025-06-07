@@ -8,6 +8,7 @@ import {
   isPullRequestReviewEvent,
   isPullRequestReviewCommentEvent,
   isWorkflowDispatchEvent,
+  isRepositoryDispatchEvent,
 } from "../context";
 import type { ParsedGitHubContext } from "../context";
 
@@ -48,6 +49,30 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
 
     console.log(
       `Workflow dispatch triggered but no PR number or prompt provided`,
+    );
+    return false;
+  }
+
+  // Handle repository_dispatch events
+  if (isRepositoryDispatchEvent(context)) {
+    // Check for PR number in client_payload
+    const prNumber = context.payload.client_payload?.pr_number;
+
+    if (prNumber) {
+      console.log(`Repository dispatch triggered for PR #${prNumber}`);
+      return true;
+    }
+
+    // Check for direct prompt in client_payload
+    const repositoryPrompt = context.payload.client_payload?.prompt;
+
+    if (repositoryPrompt) {
+      console.log(`Repository dispatch with direct prompt`);
+      return true;
+    }
+
+    console.log(
+      `Repository dispatch triggered but no PR number or prompt provided`,
     );
     return false;
   }

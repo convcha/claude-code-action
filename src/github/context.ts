@@ -6,6 +6,7 @@ import type {
   PullRequestReviewEvent,
   PullRequestReviewCommentEvent,
   WorkflowDispatchEvent,
+  RepositoryDispatchEvent,
 } from "@octokit/webhooks-types";
 
 export type ParsedGitHubContext = {
@@ -24,7 +25,8 @@ export type ParsedGitHubContext = {
     | PullRequestEvent
     | PullRequestReviewEvent
     | PullRequestReviewCommentEvent
-    | WorkflowDispatchEvent;
+    | WorkflowDispatchEvent
+    | RepositoryDispatchEvent;
   entityNumber: number;
   isPR: boolean;
   inputs: {
@@ -132,6 +134,32 @@ export function parseGitHubContext(): ParsedGitHubContext {
         isPR: true,
       };
     }
+    case "repository_dispatch": {
+      const payload = context.payload as RepositoryDispatchEvent;
+      // For repository_dispatch, check for PR number in client_payload
+      const prNumber = payload.client_payload?.pr_number;
+      const isPR = payload.client_payload?.is_pr === true || Boolean(prNumber);
+      
+      return {
+        ...commonFields,
+        payload: payload,
+        entityNumber: prNumber ? parseInt(prNumber.toString(), 10) : 0,
+        isPR: isPR,
+      };
+    }
+    case "workflow_dispatch": {
+      const payload = context.payload as WorkflowDispatchEvent;
+      // For workflow_dispatch, check for PR number in inputs
+      const prNumber = payload.inputs?.pr_number;
+      const isPR = payload.inputs?.is_pr === "true" || Boolean(prNumber);
+      
+      return {
+        ...commonFields,
+        payload: payload,
+        entityNumber: prNumber ? parseInt(prNumber.toString(), 10) : 0,
+        isPR: isPR,
+      };
+    }
     default:
       throw new Error(`Unsupported event type: ${context.eventName}`);
   }
@@ -174,4 +202,13 @@ export function isWorkflowDispatchEvent(
   payload: WorkflowDispatchEvent;
 } {
   return context.eventName === "workflow_dispatch";
+}
+
+export function isRepositoryDispatchEvent(
+  context: ParsedGitHubContext,
+): context is ParsedGitHubContext & {
+  eventName: "repository_dispatch";
+  payload: RepositoryDispatchEvent;
+} {
+  return context.eventName === "repository_dispatch";
 }

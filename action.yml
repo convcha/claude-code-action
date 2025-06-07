@@ -4,6 +4,10 @@ branding:
   icon: "at-sign"
   color: "orange"
 
+# Add repository_dispatch as supported event type
+on:
+  repository_dispatch:
+
 inputs:
   trigger_phrase:
     description: "The trigger phrase to look for in comments or issue body"
