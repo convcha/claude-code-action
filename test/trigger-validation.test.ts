@@ -29,6 +29,7 @@ describe("checkContainsTrigger", () => {
         inputs: {
           triggerPhrase: "/claude",
           assigneeTrigger: "",
+          labelTrigger: "",
           directPrompt: "Fix the bug in the login form",
           allowedTools: [],
           disallowedTools: [],
@@ -55,6 +56,7 @@ describe("checkContainsTrigger", () => {
         inputs: {
           triggerPhrase: "/claude",
           assigneeTrigger: "",
+          labelTrigger: "",
           directPrompt: "",
           allowedTools: [],
           disallowedTools: [],
@@ -227,6 +229,7 @@ describe("checkContainsTrigger", () => {
         inputs: {
           triggerPhrase: "@claude",
           assigneeTrigger: "",
+          labelTrigger: "",
           directPrompt: "",
           allowedTools: [],
           disallowedTools: [],
@@ -254,6 +257,7 @@ describe("checkContainsTrigger", () => {
         inputs: {
           triggerPhrase: "@claude",
           assigneeTrigger: "",
+          labelTrigger: "",
           directPrompt: "",
           allowedTools: [],
           disallowedTools: [],
@@ -281,6 +285,7 @@ describe("checkContainsTrigger", () => {
         inputs: {
           triggerPhrase: "@claude",
           assigneeTrigger: "",
+          labelTrigger: "",
           directPrompt: "",
           allowedTools: [],
           disallowedTools: [],
@@ -398,6 +403,128 @@ describe("checkContainsTrigger", () => {
         } as ParsedGitHubContext;
         expect(checkContainsTrigger(context)).toBe(expected);
       });
+    });
+  });
+
+  describe("label trigger", () => {
+    it("should return true when issue is labeled with the trigger label", () => {
+      const context = createMockContext({
+        eventName: "issues",
+        eventAction: "labeled",
+        payload: {
+          action: "labeled",
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            created_at: "2023-01-01T00:00:00Z",
+            user: { login: "testuser" },
+          },
+          label: {
+            name: "claude-auto-fix",
+            color: "ff0000",
+          },
+        } as IssuesEvent,
+        inputs: {
+          triggerPhrase: "@claude",
+          assigneeTrigger: "",
+          labelTrigger: "claude-auto-fix",
+          allowedTools: [],
+          disallowedTools: [],
+          customInstructions: "",
+          directPrompt: "",
+        },
+      });
+      expect(checkContainsTrigger(context)).toBe(true);
+    });
+
+    it("should return false when issue is labeled with a different label", () => {
+      const context = createMockContext({
+        eventName: "issues",
+        eventAction: "labeled",
+        payload: {
+          action: "labeled",
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            created_at: "2023-01-01T00:00:00Z",
+            user: { login: "testuser" },
+          },
+          label: {
+            name: "bug",
+            color: "ff0000",
+          },
+        } as IssuesEvent,
+        inputs: {
+          triggerPhrase: "@claude",
+          assigneeTrigger: "",
+          labelTrigger: "claude-auto-fix",
+          allowedTools: [],
+          disallowedTools: [],
+          customInstructions: "",
+          directPrompt: "",
+        },
+      });
+      expect(checkContainsTrigger(context)).toBe(false);
+    });
+
+    it("should return false when labelTrigger is empty", () => {
+      const context = createMockContext({
+        eventName: "issues",
+        eventAction: "labeled",
+        payload: {
+          action: "labeled",
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            created_at: "2023-01-01T00:00:00Z",
+            user: { login: "testuser" },
+          },
+          label: {
+            name: "claude-auto-fix",
+            color: "ff0000",
+          },
+        } as IssuesEvent,
+        inputs: {
+          triggerPhrase: "@claude",
+          assigneeTrigger: "",
+          labelTrigger: "",
+          allowedTools: [],
+          disallowedTools: [],
+          customInstructions: "",
+          directPrompt: "",
+        },
+      });
+      expect(checkContainsTrigger(context)).toBe(false);
+    });
+
+    it("should return false when event is not labeled", () => {
+      const context = createMockContext({
+        eventName: "issues",
+        eventAction: "opened",
+        payload: {
+          action: "opened",
+          issue: {
+            number: 1,
+            title: "Test Issue",
+            body: "Test body",
+            created_at: "2023-01-01T00:00:00Z",
+            user: { login: "testuser" },
+          },
+        } as IssuesEvent,
+        inputs: {
+          triggerPhrase: "@claude",
+          assigneeTrigger: "",
+          labelTrigger: "claude-auto-fix",
+          allowedTools: [],
+          disallowedTools: [],
+          customInstructions: "",
+          directPrompt: "",
+        },
+      });
+      expect(checkContainsTrigger(context)).toBe(false);
     });
   });
 
