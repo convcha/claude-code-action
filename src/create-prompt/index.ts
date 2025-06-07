@@ -264,6 +264,22 @@ export function prepareContext(
           baseBranch,
           claudeBranch,
         };
+      } else if (eventAction === "labeled") {
+        const labelTrigger = context.inputs.labelTrigger;
+        if (!labelTrigger) {
+          throw new Error(
+            "LABEL_TRIGGER is required for issue labeled event",
+          );
+        }
+        eventData = {
+          eventName: "issues",
+          eventAction: "labeled",
+          isPR: false,
+          issueNumber,
+          baseBranch,
+          claudeBranch,
+          labelTrigger,
+        };
       } else {
         throw new Error(`Unsupported issue action: ${eventAction}`);
       }
@@ -322,16 +338,25 @@ export function getEventTypeAndContext(envVars: PreparedContext): {
       };
 
     case "issues":
-      if (eventData.eventAction === "opened") {
-        return {
-          eventType: "ISSUE_CREATED",
-          triggerContext: `new issue with '${envVars.triggerPhrase}' in body`,
-        };
+      switch (eventData.eventAction) {
+        case "opened":
+          return {
+            eventType: "ISSUE_CREATED",
+            triggerContext: `new issue with '${envVars.triggerPhrase}' in body`,
+          };
+        case "assigned":
+          return {
+            eventType: "ISSUE_ASSIGNED",
+            triggerContext: `issue assigned to '${eventData.assigneeTrigger}'`,
+          };
+        case "labeled":
+          return {
+            eventType: "ISSUE_LABELED",
+            triggerContext: `issue labeled with '${eventData.labelTrigger}'`,
+          };
+        default:
+          throw new Error(`Unsupported issue action: ${(eventData as any).eventAction}`);
       }
-      return {
-        eventType: "ISSUE_ASSIGNED",
-        triggerContext: `issue assigned to '${eventData.assigneeTrigger}'`,
-      };
 
     case "pull_request":
       return {
@@ -463,6 +488,7 @@ Follow these steps:
    - Analyze the pre-fetched data provided above.
    - For ISSUE_CREATED: Read the issue body to find the request after the trigger phrase.
    - For ISSUE_ASSIGNED: Read the entire issue body to understand the task.
+   - For ISSUE_LABELED: Read the entire issue body to understand the task (triggered by label).
 ${eventData.eventName === "issue_comment" || eventData.eventName === "pull_request_review_comment" || eventData.eventName === "pull_request_review" ? `   - For comment/review events: Your instructions are in the <trigger_comment> tag above.` : ""}
 ${context.directPrompt ? `   - DIRECT INSTRUCTION: A direct instruction was provided and is shown in the <direct_prompt> tag above. This is not from any GitHub comment but a direct instruction to execute.` : ""}
    - IMPORTANT: Only the comment/issue containing '${context.triggerPhrase}' has your instructions.
