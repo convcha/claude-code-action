@@ -7,6 +7,7 @@ import {
   isPullRequestEvent,
   isPullRequestReviewEvent,
   isPullRequestReviewCommentEvent,
+  isWorkflowDispatchEvent,
 } from "../context";
 import type { ParsedGitHubContext } from "../context";
 
@@ -19,6 +20,36 @@ export function checkContainsTrigger(context: ParsedGitHubContext): boolean {
   if (directPrompt) {
     console.log(`Direct prompt provided, triggering action`);
     return true;
+  }
+
+  // Handle workflow_dispatch events
+  if (isWorkflowDispatchEvent(context)) {
+    // Check for PR number in inputs/environment
+    const prNumber =
+      context.payload.inputs?.pr_number ||
+      core.getInput("pr_number") ||
+      process.env.PR_NUMBER;
+
+    if (prNumber) {
+      console.log(`Workflow dispatch triggered for PR #${prNumber}`);
+      return true;
+    }
+
+    // Check for direct prompt
+    const workflowPrompt =
+      context.payload.inputs?.prompt ||
+      core.getInput("prompt") ||
+      process.env.PROMPT;
+
+    if (workflowPrompt) {
+      console.log(`Workflow dispatch with direct prompt`);
+      return true;
+    }
+
+    console.log(
+      `Workflow dispatch triggered but no PR number or prompt provided`,
+    );
+    return false;
   }
 
   // Check for assignee trigger
